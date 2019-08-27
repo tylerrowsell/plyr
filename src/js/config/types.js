@@ -4,7 +4,6 @@
 
 export const providers = {
     html5: 'html5',
-    vimeo: 'vimeo',
 };
 
 export const types = {
@@ -16,13 +15,7 @@ export const types = {
  * Get provider by URL
  * @param {String} url
  */
-export function getProviderByUrl(url) {
-
-    // Vimeo
-    if (/^https?:\/\/player.vimeo.com\/video\/\d{0,9}(?=\b|\/)/.test(url)) {
-        return providers.vimeo;
-    }
-
+export function getProviderByUrl() {
     return null;
 }
 

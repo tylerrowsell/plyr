@@ -341,8 +341,8 @@ class Listeners {
                 return;
             }
 
-            // If it's not an embed and no ratio specified
-            if (!player.isEmbed && is.empty(player.config.ratio)) {
+            // If no ratio specified
+            if (is.empty(player.config.ratio)) {
                 return;
             }
 

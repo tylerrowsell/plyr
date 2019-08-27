@@ -247,11 +247,6 @@ const captions = {
                 this.storage.set({ language });
             }
 
-            // Handle Vimeo captions
-            if (this.isVimeo) {
-                this.embed.enableTextTrack(language);
-            }
-
             // Trigger event
             triggerEvent.call(this, this.media, 'languagechange');
         }

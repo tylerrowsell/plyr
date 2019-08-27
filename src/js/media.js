@@ -3,7 +3,6 @@
 // ==========================================================================
 
 import html5 from './html5';
-import vimeo from './plugins/vimeo';
 import { createElement, toggleClass, wrap } from './utils/elements';
 
 const media = {
@@ -20,12 +19,6 @@ const media = {
 
         // Add provider class
         toggleClass(this.elements.container, this.config.classNames.provider.replace('{0}', this.provider), true);
-
-        // Add video class for embeds
-        // This will require changes if audio embeds are added
-        if (this.isEmbed) {
-            toggleClass(this.elements.container, this.config.classNames.type.replace('{0}', 'video'), true);
-        }
 
         // Inject the player wrapper
         if (this.isVideo) {
@@ -47,8 +40,6 @@ const media = {
 
         if (this.isHTML5) {
             html5.extend.call(this);
-        } else if (this.isVimeo) {
-            vimeo.setup.call(this);
         }
     },
 };

@@ -148,7 +148,7 @@ class Plyr {
         this.elements.original = clone;
 
         // Set media type based on tag or data attribute
-        // Supported: video, audio, vimeo
+        // Supported: video, audio
         const type = this.media.tagName.toLowerCase();
         // Embed properties
         let iframe = null;
@@ -276,7 +276,7 @@ class Plyr {
 
         // Setup interface
         // If embed but not fully supported, build interface now to avoid flash of controls
-        if (this.isHTML5 || (this.isEmbed && !this.supported.ui)) {
+        if (this.isHTML5) {
             ui.build.call(this);
         }
 
@@ -312,14 +312,6 @@ class Plyr {
      */
     get isHTML5() {
         return this.provider === providers.html5;
-    }
-
-    get isEmbed() {
-        return this.isVimeo;
-    }
-
-    get isVimeo() {
-        return this.provider === providers.vimeo;
     }
 
     get isVideo() {
@@ -463,11 +455,6 @@ class Plyr {
      */
     get buffered() {
         const { buffered } = this.media;
-
-        // Vimeo return a float between 0-1
-        if (is.number(buffered)) {
-            return buffered;
-        }
 
         // HTML5
         // TODO: Handle buffered chunks of the media
@@ -657,34 +644,6 @@ class Plyr {
      */
     get speed() {
         return Number(this.media.playbackRate);
-    }
-
-    /**
-     * Get the minimum allowed speed
-     */
-    get minimumSpeed() {
-
-        if (this.isVimeo) {
-            // https://github.com/vimeo/player.js/#setplaybackrateplaybackrate-number-promisenumber-rangeerrorerror
-            return 0.5;
-        }
-
-        // https://stackoverflow.com/a/32320020/1191319
-        return 0.0625;
-    }
-
-    /**
-     * Get the maximum allowed speed
-     */
-    get maximumSpeed() {
-
-        if (this.isVimeo) {
-            // https://github.com/vimeo/player.js/#setplaybackrateplaybackrate-number-promisenumber-rangeerrorerror
-            return 2;
-        }
-
-        // https://stackoverflow.com/a/32320020/1191319
-        return 16;
     }
 
     /**
@@ -1143,15 +1102,6 @@ class Plyr {
 
             // Clean up
             done();
-        } else if (this.isVimeo) {
-            // Destroy Vimeo API
-            // then clean up (wait, to prevent postmessage errors)
-            if (this.embed !== null) {
-                this.embed.unload().then(done);
-            }
-
-            // Vimeo does not always return
-            setTimeout(done, 200);
         }
     }
 
@@ -1166,7 +1116,7 @@ class Plyr {
     /**
      * Check for support
      * @param {String} type - Player type (audio/video)
-     * @param {String} provider - Provider (html5/vimeo)
+     * @param {String} provider - Provider (html5)
      * @param {Boolean} inline - Where player has `playsinline` sttribute
      */
     static supported(type, provider, inline) {

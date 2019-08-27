@@ -15,13 +15,6 @@ const defaults = {
     // Auto play (if supported)
     autoplay: false,
 
-    // Only allow one media playing at once (vimeo only)
-    autopause: true,
-
-    // Allow inline playback on iOS (this effects Vimeo - HTML5 requires the attribute present)
-    // TODO: Remove iosNative fullscreen option in favour of this (logic needs work)
-    playsinline: true,
-
     // Default time to skip when rewind/fast forward
     seekTime: 10,
 
@@ -189,11 +182,6 @@ const defaults = {
     // URLs
     urls: {
         download: null,
-        vimeo: {
-            sdk: 'https://player.vimeo.com/api/player.js',
-            iframe: 'https://player.vimeo.com/video/{0}?{1}',
-            api: 'https://vimeo.com/api/v2/video/{0}.json',
-        },
     },
 
     // Custom control listeners
@@ -375,15 +363,6 @@ const defaults = {
     previewThumbnails: {
         enabled: false,
         src: '',
-    },
-
-    // Vimeo plugin
-    vimeo: {
-        byline: false,
-        portrait: false,
-        title: false,
-        speed: true,
-        transparent: false,
     },
 };
 

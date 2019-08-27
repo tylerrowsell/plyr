@@ -55,15 +55,6 @@ const sources = {
             },
         ],
     },
-    vimeo: {
-        type: 'video',
-        sources: [
-            {
-                src: 'https://vimeo.com/76979871',
-                provider: 'vimeo',
-            },
-        ],
-    },
 };
 
 export default sources;
