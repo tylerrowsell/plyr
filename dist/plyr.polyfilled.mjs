@@ -9658,14 +9658,6 @@ var types = {
   audio: 'audio',
   video: 'video'
 };
-/**
- * Get provider by URL
- * @param {String} url
- */
-
-function getProviderByUrl() {
-  return null;
-}
 
 // ==========================================================================
 // Console wrapper
@@ -10482,27 +10474,7 @@ function () {
         timers.controls = setTimeout(function () {
           return ui.toggleControls.call(player, false);
         }, delay);
-      }); // Set a gutter for Vimeo
-
-      var setGutter = function setGutter(ratio, padding, toggle) {
-        if (!player.isVimeo) {
-          return;
-        }
-
-        var target = player.elements.wrapper.firstChild;
-
-        var _ratio = _slicedToArray(ratio, 2),
-            y = _ratio[1];
-
-        var _getAspectRatio$call = getAspectRatio.call(player),
-            _getAspectRatio$call2 = _slicedToArray(_getAspectRatio$call, 2),
-            videoX = _getAspectRatio$call2[0],
-            videoY = _getAspectRatio$call2[1];
-
-        target.style.maxWidth = toggle ? "".concat(y / videoY * videoX, "px") : null;
-        target.style.margin = toggle ? '0 auto' : null;
-      }; // Resize on fullscreen change
-
+      }); // Resize on fullscreen change
 
       var setPlayerSize = function setPlayerSize(measure) {
         // If we don't need to measure the viewport
@@ -10539,10 +10511,8 @@ function () {
 
         var _setPlayerSize = setPlayerSize(isEnter),
             padding = _setPlayerSize.padding,
-            ratio = _setPlayerSize.ratio; // Set Vimeo gutter
+            ratio = _setPlayerSize.ratio; // If not using native fullscreen, we need to check for resizes of viewport
 
-
-        setGutter(ratio, padding, isEnter); // If not using native fullscreen, we need to check for resizes of viewport
 
         if (!usingNative) {
           if (isEnter) {
@@ -11971,57 +11941,9 @@ function () {
     this.elements.original = clone; // Set media type based on tag or data attribute
     // Supported: video, audio
 
-    var type = this.media.tagName.toLowerCase(); // Embed properties
-
-    var iframe = null;
-    var url = null; // Different setup based on type
+    var type = this.media.tagName.toLowerCase(); // Different setup based on type
 
     switch (type) {
-      case 'div':
-        // Find the frame
-        iframe = this.media.querySelector('iframe'); // <iframe> type
-
-        if (is$1.element(iframe)) {
-          // Detect provider
-          url = parseUrl(iframe.getAttribute('src'));
-          this.provider = getProviderByUrl(url.toString()); // Rework elements
-
-          this.elements.container = this.media;
-          this.media = iframe; // Reset classname
-
-          this.elements.container.className = ''; // Get attributes from URL and set config
-
-          if (url.search.length) {
-            var truthy = ['1', 'true'];
-
-            if (truthy.includes(url.searchParams.get('autoplay'))) {
-              this.config.autoplay = true;
-            }
-
-            if (truthy.includes(url.searchParams.get('loop'))) {
-              this.config.loop.active = true;
-            } // TODO: replace fullscreen.iosNative with this playsinline config option
-
-
-            this.config.playsinline = true;
-          }
-        } else {
-          // <div> with attributes
-          this.provider = this.media.getAttribute(this.config.attributes.embed.provider); // Remove attribute
-
-          this.media.removeAttribute(this.config.attributes.embed.provider);
-        } // Unsupported or missing provider
-
-
-        if (is$1.empty(this.provider) || !Object.keys(providers).includes(this.provider)) {
-          this.debug.error('Setup failed: Invalid provider');
-          return;
-        } // Audio will come later for external providers
-
-
-        this.type = types.video;
-        break;
-
       case 'video':
       case 'audio':
         this.type = type;
