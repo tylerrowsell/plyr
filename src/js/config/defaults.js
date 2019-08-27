@@ -265,17 +265,6 @@ const defaults = {
 
         // Quality
         'qualitychange',
-
-        // Ads
-        'adsloaded',
-        'adscontentpause',
-        'adscontentresume',
-        'adstarted',
-        'adsmidpoint',
-        'adscomplete',
-        'adsallcomplete',
-        'adsimpression',
-        'adsclick',
     ],
 
     // Selectors
@@ -332,7 +321,6 @@ const defaults = {
         embedContainer: 'plyr__video-embed__container',
         poster: 'plyr__poster',
         posterEnabled: 'plyr__poster-enabled',
-        ads: 'plyr__ads',
         control: 'plyr__control',
         controlPressed: 'plyr__control--pressed',
         playing: 'plyr--playing',
@@ -391,14 +379,6 @@ const defaults = {
             provider: 'data-plyr-provider',
             id: 'data-plyr-embed-id',
         },
-    },
-
-    // Advertisements plugin
-    // Register for an account here: http://vi.ai/publisher-video-monetization/?aid=plyrio
-    ads: {
-        enabled: false,
-        publisherId: '',
-        tagUrl: '',
     },
 
     // Preview Thumbnails plugin
