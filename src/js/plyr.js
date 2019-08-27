@@ -8,7 +8,7 @@
 import captions from './captions';
 import defaults from './config/defaults';
 import { pip } from './config/states';
-import { getProviderByUrl, providers, types } from './config/types';
+import { providers, types } from './config/types';
 import Console from './console';
 import controls from './controls';
 import Fullscreen from './fullscreen';
@@ -27,7 +27,6 @@ import loadSprite from './utils/load-sprite';
 import { clamp } from './utils/numbers';
 import { cloneDeep, extend } from './utils/objects';
 import { getAspectRatio, reduceAspectRatio, setAspectRatio, validateRatio } from './utils/style';
-import { parseUrl } from './utils/urls';
 
 // Private properties
 // TODO: Use a WeakMap for private globals
@@ -150,62 +149,9 @@ class Plyr {
         // Set media type based on tag or data attribute
         // Supported: video, audio
         const type = this.media.tagName.toLowerCase();
-        // Embed properties
-        let iframe = null;
-        let url = null;
 
         // Different setup based on type
         switch (type) {
-            case 'div':
-                // Find the frame
-                iframe = this.media.querySelector('iframe');
-
-                // <iframe> type
-                if (is.element(iframe)) {
-                    // Detect provider
-                    url = parseUrl(iframe.getAttribute('src'));
-                    this.provider = getProviderByUrl(url.toString());
-
-                    // Rework elements
-                    this.elements.container = this.media;
-                    this.media = iframe;
-
-                    // Reset classname
-                    this.elements.container.className = '';
-
-                    // Get attributes from URL and set config
-                    if (url.search.length) {
-                        const truthy = ['1', 'true'];
-
-                        if (truthy.includes(url.searchParams.get('autoplay'))) {
-                            this.config.autoplay = true;
-                        }
-                        if (truthy.includes(url.searchParams.get('loop'))) {
-                            this.config.loop.active = true;
-                        }
-
-                        // TODO: replace fullscreen.iosNative with this playsinline config option
-                        this.config.playsinline = true;
-                    }
-                } else {
-                    // <div> with attributes
-                    this.provider = this.media.getAttribute(this.config.attributes.embed.provider);
-
-                    // Remove attribute
-                    this.media.removeAttribute(this.config.attributes.embed.provider);
-                }
-
-                // Unsupported or missing provider
-                if (is.empty(this.provider) || !Object.keys(providers).includes(this.provider)) {
-                    this.debug.error('Setup failed: Invalid provider');
-                    return;
-                }
-
-                // Audio will come later for external providers
-                this.type = types.video;
-
-                break;
-
             case 'video':
             case 'audio':
                 this.type = type;

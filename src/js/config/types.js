@@ -11,12 +11,4 @@ export const types = {
     video: 'video',
 };
 
-/**
- * Get provider by URL
- * @param {String} url
- */
-export function getProviderByUrl() {
-    return null;
-}
-
 export default { providers, types };
