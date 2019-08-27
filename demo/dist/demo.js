@@ -6984,13 +6984,9 @@ typeof navigator === "object" && (function (Raven, Shr) {
 	      h = _ref2[1];
 
 	  var padding = 100 / w * h;
-	  this.elements.wrapper.style.paddingBottom = "".concat(padding, "%"); // For Vimeo we have an extra <div> to hide the standard controls and UI
+	  this.elements.wrapper.style.paddingBottom = "".concat(padding, "%");
 
-	  if (this.isVimeo && this.supported.ui) {
-	    var height = 240;
-	    var offset = (height - padding) / (height / 50);
-	    this.media.style.transform = "translateY(-".concat(offset, "%)");
-	  } else if (this.isHTML5) {
+	  if (this.isHTML5) {
 	    this.elements.wrapper.classList.toggle(this.config.classNames.videoFixedRatio, ratio !== null);
 	  }
 
@@ -7189,20 +7185,6 @@ typeof navigator === "object" && (function (Raven, Shr) {
 	// https://tc39.github.io/ecma262/#sec-get-regexp-@@species
 	setSpecies('RegExp');
 
-	function format(input) {
-	  for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-	    args[_key - 1] = arguments[_key];
-	  }
-
-	  if (is$1.empty(input)) {
-	    return input;
-	  }
-
-	  return input.toString().replace(/{(\d+)}/g, function (match, i) {
-	    return args[i].toString();
-	  });
-	} // Get percentage
-
 	function getPercentage(current, max) {
 	  if (current === 0 || max === 0 || Number.isNaN(current) || Number.isNaN(max)) {
 	    return 0;
@@ -7247,14 +7229,6 @@ typeof navigator === "object" && (function (Raven, Shr) {
 	  return string.charAt(0).toLowerCase() + string.slice(1);
 	} // Remove HTML from a string
 
-	function stripHTML(source) {
-	  var fragment = document.createDocumentFragment();
-	  var element = document.createElement('div');
-	  fragment.appendChild(element);
-	  element.innerHTML = source;
-	  return fragment.firstChild.innerText;
-	} // Like outerHTML, but also works for DocumentFragment
-
 	function getHTML(element) {
 	  var wrapper = document.createElement('div');
 	  wrapper.appendChild(element);
@@ -7264,9 +7238,7 @@ typeof navigator === "object" && (function (Raven, Shr) {
 	var resources = {
 	  pip: 'PIP',
 	  airplay: 'AirPlay',
-	  html5: 'HTML5',
-	  vimeo: 'Vimeo',
-	  youtube: 'YouTube'
+	  html5: 'HTML5'
 	};
 	var i18n = {
 	  get: function get() {
@@ -8433,7 +8405,7 @@ typeof navigator === "object" && (function (Raven, Shr) {
 
 	    if (is$1.array(options)) {
 	      this.options.speed = options;
-	    } else if (this.isHTML5 || this.isVimeo) {
+	    } else if (this.isHTML5) {
 	      this.options.speed = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
 	    } // Set options if passed and filter based on config
 
@@ -8862,7 +8834,7 @@ typeof navigator === "object" && (function (Raven, Shr) {
 
 	        var download = _this10.config.urls.download;
 
-	        if (!is$1.url(download) && _this10.isEmbed) {
+	        if (!is$1.url(download)) {
 	          extend(_attributes, {
 	            icon: "logo-".concat(_this10.provider),
 	            label: _this10.provider
@@ -9047,22 +9019,6 @@ typeof navigator === "object" && (function (Raven, Shr) {
 	    return null;
 	  }
 	} // Convert object to URLSearchParams
-
-	function buildUrlParams(input) {
-	  var params = new URLSearchParams();
-
-	  if (is$1.object(input)) {
-	    Object.entries(input).forEach(function (_ref) {
-	      var _ref2 = _slicedToArray(_ref, 2),
-	          key = _ref2[0],
-	          value = _ref2[1];
-
-	      params.set(key, value);
-	    });
-	  }
-
-	  return params;
-	}
 
 	var captions = {
 	  // Setup captions
@@ -9282,11 +9238,6 @@ typeof navigator === "object" && (function (Raven, Shr) {
 	        this.storage.set({
 	          language: language
 	        });
-	      } // Handle Vimeo captions
-
-
-	      if (this.isVimeo) {
-	        this.embed.enableTextTrack(language);
 	      } // Trigger event
 
 
@@ -9444,11 +9395,6 @@ typeof navigator === "object" && (function (Raven, Shr) {
 	  debug: false,
 	  // Auto play (if supported)
 	  autoplay: false,
-	  // Only allow one media playing at once (vimeo only)
-	  autopause: true,
-	  // Allow inline playback on iOS (this effects Vimeo - HTML5 requires the attribute present)
-	  // TODO: Remove iosNative fullscreen option in favour of this (logic needs work)
-	  playsinline: true,
 	  // Default time to skip when rewind/fast forward
 	  seekTime: 10,
 	  // Default volume
@@ -9583,12 +9529,7 @@ typeof navigator === "object" && (function (Raven, Shr) {
 	  },
 	  // URLs
 	  urls: {
-	    download: null,
-	    vimeo: {
-	      sdk: 'https://player.vimeo.com/api/player.js',
-	      iframe: 'https://player.vimeo.com/video/{0}?{1}',
-	      api: 'https://vimeo.com/api/v2/video/{0}.json'
-	    }
+	    download: null
 	  },
 	  // Custom control listeners
 	  listeners: {
@@ -9732,14 +9673,6 @@ typeof navigator === "object" && (function (Raven, Shr) {
 	  previewThumbnails: {
 	    enabled: false,
 	    src: ''
-	  },
-	  // Vimeo plugin
-	  vimeo: {
-	    byline: false,
-	    portrait: false,
-	    title: false,
-	    speed: true,
-	    transparent: false
 	  }
 	};
 
@@ -9755,8 +9688,7 @@ typeof navigator === "object" && (function (Raven, Shr) {
 	// Plyr supported types and providers
 	// ==========================================================================
 	var providers = {
-	  html5: 'html5',
-	  vimeo: 'vimeo'
+	  html5: 'html5'
 	};
 	var types = {
 	  audio: 'audio',
@@ -9767,12 +9699,7 @@ typeof navigator === "object" && (function (Raven, Shr) {
 	 * @param {String} url
 	 */
 
-	function getProviderByUrl(url) {
-	  // Vimeo
-	  if (/^https?:\/\/player.vimeo.com\/video\/\d{0,9}(?=\b|\/)/.test(url)) {
-	    return providers.vimeo;
-	  }
-
+	function getProviderByUrl() {
 	  return null;
 	}
 
@@ -10208,21 +10135,7 @@ typeof navigator === "object" && (function (Raven, Shr) {
 
 	    Array.from(this.elements.buttons.play || []).forEach(function (button) {
 	      button.setAttribute('aria-label', label);
-	    }); // Set iframe title
-	    // https://github.com/sampotts/plyr/issues/124
-
-	    if (this.isEmbed) {
-	      var iframe = getElement.call(this, 'iframe');
-
-	      if (!is$1.element(iframe)) {
-	        return;
-	      } // Default to media type
-
-
-	      var title = !is$1.empty(this.config.title) ? this.config.title : 'video';
-	      var format = i18n.get('frameTitle', this.config);
-	      iframe.setAttribute('title', format.replace('{title}', title));
-	    }
+	    });
 	  },
 	  // Toggle poster
 	  togglePoster: function togglePoster(enable) {
@@ -10651,10 +10564,10 @@ typeof navigator === "object" && (function (Raven, Shr) {
 
 	        if (target !== elements.container) {
 	          return;
-	        } // If it's not an embed and no ratio specified
+	        } // If no ratio specified
 
 
-	        if (!player.isEmbed && is$1.empty(player.config.ratio)) {
+	        if (is$1.empty(player.config.ratio)) {
 	          return;
 	        }
 
@@ -11096,725 +11009,6 @@ typeof navigator === "object" && (function (Raven, Shr) {
 	  return Listeners;
 	}();
 
-	var defineProperty$5 = objectDefineProperty.f;
-
-	var FunctionPrototype = Function.prototype;
-	var FunctionPrototypeToString = FunctionPrototype.toString;
-	var nameRE = /^\s*function ([^ (]*)/;
-	var NAME = 'name';
-
-	// Function instances `.name` property
-	// https://tc39.github.io/ecma262/#sec-function-instances-name
-	if (descriptors && !(NAME in FunctionPrototype)) {
-	  defineProperty$5(FunctionPrototype, NAME, {
-	    configurable: true,
-	    get: function () {
-	      try {
-	        return FunctionPrototypeToString.call(this).match(nameRE)[1];
-	      } catch (error) {
-	        return '';
-	      }
-	    }
-	  });
-	}
-
-	var max$3 = Math.max;
-	var min$5 = Math.min;
-	var MAX_SAFE_INTEGER$1 = 0x1FFFFFFFFFFFFF;
-	var MAXIMUM_ALLOWED_LENGTH_EXCEEDED = 'Maximum allowed length exceeded';
-
-	// `Array.prototype.splice` method
-	// https://tc39.github.io/ecma262/#sec-array.prototype.splice
-	// with adding support of @@species
-	_export({ target: 'Array', proto: true, forced: !arrayMethodHasSpeciesSupport('splice') }, {
-	  splice: function splice(start, deleteCount /* , ...items */) {
-	    var O = toObject(this);
-	    var len = toLength(O.length);
-	    var actualStart = toAbsoluteIndex(start, len);
-	    var argumentsLength = arguments.length;
-	    var insertCount, actualDeleteCount, A, k, from, to;
-	    if (argumentsLength === 0) {
-	      insertCount = actualDeleteCount = 0;
-	    } else if (argumentsLength === 1) {
-	      insertCount = 0;
-	      actualDeleteCount = len - actualStart;
-	    } else {
-	      insertCount = argumentsLength - 2;
-	      actualDeleteCount = min$5(max$3(toInteger(deleteCount), 0), len - actualStart);
-	    }
-	    if (len + insertCount - actualDeleteCount > MAX_SAFE_INTEGER$1) {
-	      throw TypeError(MAXIMUM_ALLOWED_LENGTH_EXCEEDED);
-	    }
-	    A = arraySpeciesCreate(O, actualDeleteCount);
-	    for (k = 0; k < actualDeleteCount; k++) {
-	      from = actualStart + k;
-	      if (from in O) createProperty(A, k, O[from]);
-	    }
-	    A.length = actualDeleteCount;
-	    if (insertCount < actualDeleteCount) {
-	      for (k = actualStart; k < len - actualDeleteCount; k++) {
-	        from = k + actualDeleteCount;
-	        to = k + insertCount;
-	        if (from in O) O[to] = O[from];
-	        else delete O[to];
-	      }
-	      for (k = len; k > len - actualDeleteCount + insertCount; k--) delete O[k - 1];
-	    } else if (insertCount > actualDeleteCount) {
-	      for (k = len - actualDeleteCount; k > actualStart; k--) {
-	        from = k + actualDeleteCount - 1;
-	        to = k + insertCount - 1;
-	        if (from in O) O[to] = O[from];
-	        else delete O[to];
-	      }
-	    }
-	    for (k = 0; k < insertCount; k++) {
-	      O[k + actualStart] = arguments[k + 2];
-	    }
-	    O.length = len - actualDeleteCount + insertCount;
-	    return A;
-	  }
-	});
-
-	var loadjs_umd = createCommonjsModule(function (module, exports) {
-	  (function (root, factory) {
-	    {
-	      module.exports = factory();
-	    }
-	  })(commonjsGlobal, function () {
-	    /**
-	     * Global dependencies.
-	     * @global {Object} document - DOM
-	     */
-	    var devnull = function devnull() {},
-	        bundleIdCache = {},
-	        bundleResultCache = {},
-	        bundleCallbackQueue = {};
-	    /**
-	     * Subscribe to bundle load event.
-	     * @param {string[]} bundleIds - Bundle ids
-	     * @param {Function} callbackFn - The callback function
-	     */
-
-
-	    function subscribe(bundleIds, callbackFn) {
-	      // listify
-	      bundleIds = bundleIds.push ? bundleIds : [bundleIds];
-	      var depsNotFound = [],
-	          i = bundleIds.length,
-	          numWaiting = i,
-	          fn,
-	          bundleId,
-	          r,
-	          q; // define callback function
-
-	      fn = function fn(bundleId, pathsNotFound) {
-	        if (pathsNotFound.length) depsNotFound.push(bundleId);
-	        numWaiting--;
-	        if (!numWaiting) callbackFn(depsNotFound);
-	      }; // register callback
-
-
-	      while (i--) {
-	        bundleId = bundleIds[i]; // execute callback if in result cache
-
-	        r = bundleResultCache[bundleId];
-
-	        if (r) {
-	          fn(bundleId, r);
-	          continue;
-	        } // add to callback queue
-
-
-	        q = bundleCallbackQueue[bundleId] = bundleCallbackQueue[bundleId] || [];
-	        q.push(fn);
-	      }
-	    }
-	    /**
-	     * Publish bundle load event.
-	     * @param {string} bundleId - Bundle id
-	     * @param {string[]} pathsNotFound - List of files not found
-	     */
-
-
-	    function publish(bundleId, pathsNotFound) {
-	      // exit if id isn't defined
-	      if (!bundleId) return;
-	      var q = bundleCallbackQueue[bundleId]; // cache result
-
-	      bundleResultCache[bundleId] = pathsNotFound; // exit if queue is empty
-
-	      if (!q) return; // empty callback queue
-
-	      while (q.length) {
-	        q[0](bundleId, pathsNotFound);
-	        q.splice(0, 1);
-	      }
-	    }
-	    /**
-	     * Execute callbacks.
-	     * @param {Object or Function} args - The callback args
-	     * @param {string[]} depsNotFound - List of dependencies not found
-	     */
-
-
-	    function executeCallbacks(args, depsNotFound) {
-	      // accept function as argument
-	      if (args.call) args = {
-	        success: args
-	      }; // success and error callbacks
-
-	      if (depsNotFound.length) (args.error || devnull)(depsNotFound);else (args.success || devnull)(args);
-	    }
-	    /**
-	     * Load individual file.
-	     * @param {string} path - The file path
-	     * @param {Function} callbackFn - The callback function
-	     */
-
-
-	    function loadFile(path, callbackFn, args, numTries) {
-	      var doc = document,
-	          async = args.async,
-	          maxTries = (args.numRetries || 0) + 1,
-	          beforeCallbackFn = args.before || devnull,
-	          pathStripped = path.replace(/^(css|img)!/, ''),
-	          isLegacyIECss,
-	          e;
-	      numTries = numTries || 0;
-
-	      if (/(^css!|\.css$)/.test(path)) {
-	        // css
-	        e = doc.createElement('link');
-	        e.rel = 'stylesheet';
-	        e.href = pathStripped; // tag IE9+
-
-	        isLegacyIECss = 'hideFocus' in e; // use preload in IE Edge (to detect load errors)
-
-	        if (isLegacyIECss && e.relList) {
-	          isLegacyIECss = 0;
-	          e.rel = 'preload';
-	          e.as = 'style';
-	        }
-	      } else if (/(^img!|\.(png|gif|jpg|svg)$)/.test(path)) {
-	        // image
-	        e = doc.createElement('img');
-	        e.src = pathStripped;
-	      } else {
-	        // javascript
-	        e = doc.createElement('script');
-	        e.src = path;
-	        e.async = async === undefined ? true : async;
-	      }
-
-	      e.onload = e.onerror = e.onbeforeload = function (ev) {
-	        var result = ev.type[0]; // treat empty stylesheets as failures to get around lack of onerror
-	        // support in IE9-11
-
-	        if (isLegacyIECss) {
-	          try {
-	            if (!e.sheet.cssText.length) result = 'e';
-	          } catch (x) {
-	            // sheets objects created from load errors don't allow access to
-	            // `cssText` (unless error is Code:18 SecurityError)
-	            if (x.code != 18) result = 'e';
-	          }
-	        } // handle retries in case of load failure
-
-
-	        if (result == 'e') {
-	          // increment counter
-	          numTries += 1; // exit function and try again
-
-	          if (numTries < maxTries) {
-	            return loadFile(path, callbackFn, args, numTries);
-	          }
-	        } else if (e.rel == 'preload' && e.as == 'style') {
-	          // activate preloaded stylesheets
-	          return e.rel = 'stylesheet'; // jshint ignore:line
-	        } // execute callback
-
-
-	        callbackFn(path, result, ev.defaultPrevented);
-	      }; // add to document (unless callback returns `false`)
-
-
-	      if (beforeCallbackFn(path, e) !== false) doc.head.appendChild(e);
-	    }
-	    /**
-	     * Load multiple files.
-	     * @param {string[]} paths - The file paths
-	     * @param {Function} callbackFn - The callback function
-	     */
-
-
-	    function loadFiles(paths, callbackFn, args) {
-	      // listify paths
-	      paths = paths.push ? paths : [paths];
-	      var numWaiting = paths.length,
-	          x = numWaiting,
-	          pathsNotFound = [],
-	          fn,
-	          i; // define callback function
-
-	      fn = function fn(path, result, defaultPrevented) {
-	        // handle error
-	        if (result == 'e') pathsNotFound.push(path); // handle beforeload event. If defaultPrevented then that means the load
-	        // will be blocked (ex. Ghostery/ABP on Safari)
-
-	        if (result == 'b') {
-	          if (defaultPrevented) pathsNotFound.push(path);else return;
-	        }
-
-	        numWaiting--;
-	        if (!numWaiting) callbackFn(pathsNotFound);
-	      }; // load scripts
-
-
-	      for (i = 0; i < x; i++) {
-	        loadFile(paths[i], fn, args);
-	      }
-	    }
-	    /**
-	     * Initiate script load and register bundle.
-	     * @param {(string|string[])} paths - The file paths
-	     * @param {(string|Function|Object)} [arg1] - The (1) bundleId or (2) success
-	     *   callback or (3) object literal with success/error arguments, numRetries,
-	     *   etc.
-	     * @param {(Function|Object)} [arg2] - The (1) success callback or (2) object
-	     *   literal with success/error arguments, numRetries, etc.
-	     */
-
-
-	    function loadjs(paths, arg1, arg2) {
-	      var bundleId, args; // bundleId (if string)
-
-	      if (arg1 && arg1.trim) bundleId = arg1; // args (default is {})
-
-	      args = (bundleId ? arg2 : arg1) || {}; // throw error if bundle is already defined
-
-	      if (bundleId) {
-	        if (bundleId in bundleIdCache) {
-	          throw "LoadJS";
-	        } else {
-	          bundleIdCache[bundleId] = true;
-	        }
-	      }
-
-	      function loadFn(resolve, reject) {
-	        loadFiles(paths, function (pathsNotFound) {
-	          // execute callbacks
-	          executeCallbacks(args, pathsNotFound); // resolve Promise
-
-	          if (resolve) {
-	            executeCallbacks({
-	              success: resolve,
-	              error: reject
-	            }, pathsNotFound);
-	          } // publish bundle load event
-
-
-	          publish(bundleId, pathsNotFound);
-	        }, args);
-	      }
-
-	      if (args.returnPromise) return new Promise(loadFn);else loadFn();
-	    }
-	    /**
-	     * Execute callbacks when dependencies have been satisfied.
-	     * @param {(string|string[])} deps - List of bundle ids
-	     * @param {Object} args - success/error arguments
-	     */
-
-
-	    loadjs.ready = function ready(deps, args) {
-	      // subscribe to bundle load event
-	      subscribe(deps, function (depsNotFound) {
-	        // execute callbacks
-	        executeCallbacks(args, depsNotFound);
-	      });
-	      return loadjs;
-	    };
-	    /**
-	     * Manually satisfy bundle dependencies.
-	     * @param {string} bundleId - The bundle id
-	     */
-
-
-	    loadjs.done = function done(bundleId) {
-	      publish(bundleId, []);
-	    };
-	    /**
-	     * Reset loadjs dependencies statuses
-	     */
-
-
-	    loadjs.reset = function reset() {
-	      bundleIdCache = {};
-	      bundleResultCache = {};
-	      bundleCallbackQueue = {};
-	    };
-	    /**
-	     * Determine if bundle has already been defined
-	     * @param String} bundleId - The bundle id
-	     */
-
-
-	    loadjs.isDefined = function isDefined(bundleId) {
-	      return bundleId in bundleIdCache;
-	    }; // export
-
-
-	    return loadjs;
-	  });
-	});
-
-	function loadScript(url) {
-	  return new Promise(function (resolve, reject) {
-	    loadjs_umd(url, {
-	      success: resolve,
-	      error: reject
-	    });
-	  });
-	}
-
-	function parseId(url) {
-	  if (is$1.empty(url)) {
-	    return null;
-	  }
-
-	  if (is$1.number(Number(url))) {
-	    return url;
-	  }
-
-	  var regex = /^.*(vimeo.com\/|video\/)(\d+).*/;
-	  return url.match(regex) ? RegExp.$2 : url;
-	} // Set playback state and trigger change (only on actual change)
-
-
-	function assurePlaybackState(play) {
-	  if (play && !this.embed.hasPlayed) {
-	    this.embed.hasPlayed = true;
-	  }
-
-	  if (this.media.paused === play) {
-	    this.media.paused = !play;
-	    triggerEvent.call(this, this.media, play ? 'play' : 'pause');
-	  }
-	}
-
-	var vimeo = {
-	  setup: function setup() {
-	    var _this = this;
-
-	    // Add embed class for responsive
-	    toggleClass(this.elements.wrapper, this.config.classNames.embed, true); // Set intial ratio
-
-	    setAspectRatio.call(this); // Load the SDK if not already
-
-	    if (!is$1.object(window.Vimeo)) {
-	      loadScript(this.config.urls.vimeo.sdk).then(function () {
-	        vimeo.ready.call(_this);
-	      }).catch(function (error) {
-	        _this.debug.warn('Vimeo SDK (player.js) failed to load', error);
-	      });
-	    } else {
-	      vimeo.ready.call(this);
-	    }
-	  },
-	  // API Ready
-	  ready: function ready() {
-	    var _this2 = this;
-
-	    var player = this;
-	    var config = player.config.vimeo; // Get Vimeo params for the iframe
-
-	    var params = buildUrlParams(extend({}, {
-	      loop: player.config.loop.active,
-	      autoplay: player.autoplay,
-	      muted: player.muted,
-	      gesture: 'media',
-	      playsinline: !this.config.fullscreen.iosNative
-	    }, config)); // Get the source URL or ID
-
-	    var source = player.media.getAttribute('src'); // Get from <div> if needed
-
-	    if (is$1.empty(source)) {
-	      source = player.media.getAttribute(player.config.attributes.embed.id);
-	    }
-
-	    var id = parseId(source); // Build an iframe
-
-	    var iframe = createElement('iframe');
-	    var src = format(player.config.urls.vimeo.iframe, id, params);
-	    iframe.setAttribute('src', src);
-	    iframe.setAttribute('allowfullscreen', '');
-	    iframe.setAttribute('allowtransparency', '');
-	    iframe.setAttribute('allow', 'autoplay'); // Get poster, if already set
-
-	    var poster = player.poster; // Inject the package
-
-	    var wrapper = createElement('div', {
-	      poster: poster,
-	      class: player.config.classNames.embedContainer
-	    });
-	    wrapper.appendChild(iframe);
-	    player.media = replaceElement(wrapper, player.media); // Get poster image
-
-	    fetch(format(player.config.urls.vimeo.api, id), 'json').then(function (response) {
-	      if (is$1.empty(response)) {
-	        return;
-	      } // Get the URL for thumbnail
-
-
-	      var url = new URL(response[0].thumbnail_large); // Get original image
-
-	      url.pathname = "".concat(url.pathname.split('_')[0], ".jpg"); // Set and show poster
-
-	      ui.setPoster.call(player, url.href).catch(function () {});
-	    }); // Setup instance
-	    // https://github.com/vimeo/player.js
-
-	    player.embed = new window.Vimeo.Player(iframe, {
-	      autopause: player.config.autopause,
-	      muted: player.muted
-	    });
-	    player.media.paused = true;
-	    player.media.currentTime = 0; // Disable native text track rendering
-
-	    if (player.supported.ui) {
-	      player.embed.disableTextTrack();
-	    } // Create a faux HTML5 API using the Vimeo API
-
-
-	    player.media.play = function () {
-	      assurePlaybackState.call(player, true);
-	      return player.embed.play();
-	    };
-
-	    player.media.pause = function () {
-	      assurePlaybackState.call(player, false);
-	      return player.embed.pause();
-	    };
-
-	    player.media.stop = function () {
-	      player.pause();
-	      player.currentTime = 0;
-	    }; // Seeking
-
-
-	    var currentTime = player.media.currentTime;
-	    Object.defineProperty(player.media, 'currentTime', {
-	      get: function get() {
-	        return currentTime;
-	      },
-	      set: function set(time) {
-	        // Vimeo will automatically play on seek if the video hasn't been played before
-	        // Get current paused state and volume etc
-	        var embed = player.embed,
-	            media = player.media,
-	            paused = player.paused,
-	            volume = player.volume;
-	        var restorePause = paused && !embed.hasPlayed; // Set seeking state and trigger event
-
-	        media.seeking = true;
-	        triggerEvent.call(player, media, 'seeking'); // If paused, mute until seek is complete
-
-	        Promise.resolve(restorePause && embed.setVolume(0)) // Seek
-	        .then(function () {
-	          return embed.setCurrentTime(time);
-	        }) // Restore paused
-	        .then(function () {
-	          return restorePause && embed.pause();
-	        }) // Restore volume
-	        .then(function () {
-	          return restorePause && embed.setVolume(volume);
-	        }).catch(function () {// Do nothing
-	        });
-	      }
-	    }); // Playback speed
-
-	    var speed = player.config.speed.selected;
-	    Object.defineProperty(player.media, 'playbackRate', {
-	      get: function get() {
-	        return speed;
-	      },
-	      set: function set(input) {
-	        player.embed.setPlaybackRate(input).then(function () {
-	          speed = input;
-	          triggerEvent.call(player, player.media, 'ratechange');
-	        }).catch(function (error) {
-	          // Hide menu item (and menu if empty)
-	          if (error.name === 'Error') {
-	            controls.setSpeedMenu.call(player, []);
-	          }
-	        });
-	      }
-	    }); // Volume
-
-	    var volume = player.config.volume;
-	    Object.defineProperty(player.media, 'volume', {
-	      get: function get() {
-	        return volume;
-	      },
-	      set: function set(input) {
-	        player.embed.setVolume(input).then(function () {
-	          volume = input;
-	          triggerEvent.call(player, player.media, 'volumechange');
-	        });
-	      }
-	    }); // Muted
-
-	    var muted = player.config.muted;
-	    Object.defineProperty(player.media, 'muted', {
-	      get: function get() {
-	        return muted;
-	      },
-	      set: function set(input) {
-	        var toggle = is$1.boolean(input) ? input : false;
-	        player.embed.setVolume(toggle ? 0 : player.config.volume).then(function () {
-	          muted = toggle;
-	          triggerEvent.call(player, player.media, 'volumechange');
-	        });
-	      }
-	    }); // Loop
-
-	    var loop = player.config.loop;
-	    Object.defineProperty(player.media, 'loop', {
-	      get: function get() {
-	        return loop;
-	      },
-	      set: function set(input) {
-	        var toggle = is$1.boolean(input) ? input : player.config.loop.active;
-	        player.embed.setLoop(toggle).then(function () {
-	          loop = toggle;
-	        });
-	      }
-	    }); // Source
-
-	    var currentSrc;
-	    player.embed.getVideoUrl().then(function (value) {
-	      currentSrc = value;
-	      controls.setDownloadUrl.call(player);
-	    }).catch(function (error) {
-	      _this2.debug.warn(error);
-	    });
-	    Object.defineProperty(player.media, 'currentSrc', {
-	      get: function get() {
-	        return currentSrc;
-	      }
-	    }); // Ended
-
-	    Object.defineProperty(player.media, 'ended', {
-	      get: function get() {
-	        return player.currentTime === player.duration;
-	      }
-	    }); // Set aspect ratio based on video size
-
-	    Promise.all([player.embed.getVideoWidth(), player.embed.getVideoHeight()]).then(function (dimensions) {
-	      var _dimensions = _slicedToArray(dimensions, 2),
-	          width = _dimensions[0],
-	          height = _dimensions[1];
-
-	      player.embed.ratio = [width, height];
-	      setAspectRatio.call(_this2);
-	    }); // Set autopause
-
-	    player.embed.setAutopause(player.config.autopause).then(function (state) {
-	      player.config.autopause = state;
-	    }); // Get title
-
-	    player.embed.getVideoTitle().then(function (title) {
-	      player.config.title = title;
-	      ui.setTitle.call(_this2);
-	    }); // Get current time
-
-	    player.embed.getCurrentTime().then(function (value) {
-	      currentTime = value;
-	      triggerEvent.call(player, player.media, 'timeupdate');
-	    }); // Get duration
-
-	    player.embed.getDuration().then(function (value) {
-	      player.media.duration = value;
-	      triggerEvent.call(player, player.media, 'durationchange');
-	    }); // Get captions
-
-	    player.embed.getTextTracks().then(function (tracks) {
-	      player.media.textTracks = tracks;
-	      captions.setup.call(player);
-	    });
-	    player.embed.on('cuechange', function (_ref) {
-	      var _ref$cues = _ref.cues,
-	          cues = _ref$cues === void 0 ? [] : _ref$cues;
-	      var strippedCues = cues.map(function (cue) {
-	        return stripHTML(cue.text);
-	      });
-	      captions.updateCues.call(player, strippedCues);
-	    });
-	    player.embed.on('loaded', function () {
-	      // Assure state and events are updated on autoplay
-	      player.embed.getPaused().then(function (paused) {
-	        assurePlaybackState.call(player, !paused);
-
-	        if (!paused) {
-	          triggerEvent.call(player, player.media, 'playing');
-	        }
-	      });
-
-	      if (is$1.element(player.embed.element) && player.supported.ui) {
-	        var frame = player.embed.element; // Fix keyboard focus issues
-	        // https://github.com/sampotts/plyr/issues/317
-
-	        frame.setAttribute('tabindex', -1);
-	      }
-	    });
-	    player.embed.on('play', function () {
-	      assurePlaybackState.call(player, true);
-	      triggerEvent.call(player, player.media, 'playing');
-	    });
-	    player.embed.on('pause', function () {
-	      assurePlaybackState.call(player, false);
-	    });
-	    player.embed.on('timeupdate', function (data) {
-	      player.media.seeking = false;
-	      currentTime = data.seconds;
-	      triggerEvent.call(player, player.media, 'timeupdate');
-	    });
-	    player.embed.on('progress', function (data) {
-	      player.media.buffered = data.percent;
-	      triggerEvent.call(player, player.media, 'progress'); // Check all loaded
-
-	      if (parseInt(data.percent, 10) === 1) {
-	        triggerEvent.call(player, player.media, 'canplaythrough');
-	      } // Get duration as if we do it before load, it gives an incorrect value
-	      // https://github.com/sampotts/plyr/issues/891
-
-
-	      player.embed.getDuration().then(function (value) {
-	        if (value !== player.media.duration) {
-	          player.media.duration = value;
-	          triggerEvent.call(player, player.media, 'durationchange');
-	        }
-	      });
-	    });
-	    player.embed.on('seeked', function () {
-	      player.media.seeking = false;
-	      triggerEvent.call(player, player.media, 'seeked');
-	    });
-	    player.embed.on('ended', function () {
-	      player.media.paused = true;
-	      triggerEvent.call(player, player.media, 'ended');
-	    });
-	    player.embed.on('error', function (detail) {
-	      player.media.error = detail;
-	      triggerEvent.call(player, player.media, 'error');
-	    }); // Rebuild UI
-
-	    setTimeout(function () {
-	      return ui.build.call(player);
-	    }, 0);
-	  }
-	};
-
 	var media = {
 	  // Setup media
 	  setup: function setup() {
@@ -11827,13 +11021,7 @@ typeof navigator === "object" && (function (Raven, Shr) {
 
 	    toggleClass(this.elements.container, this.config.classNames.type.replace('{0}', this.type), true); // Add provider class
 
-	    toggleClass(this.elements.container, this.config.classNames.provider.replace('{0}', this.provider), true); // Add video class for embeds
-	    // This will require changes if audio embeds are added
-
-	    if (this.isEmbed) {
-	      toggleClass(this.elements.container, this.config.classNames.type.replace('{0}', 'video'), true);
-	    } // Inject the player wrapper
-
+	    toggleClass(this.elements.container, this.config.classNames.provider.replace('{0}', this.provider), true); // Inject the player wrapper
 
 	    if (this.isVideo) {
 	      // Create the wrapper div
@@ -11851,8 +11039,6 @@ typeof navigator === "object" && (function (Raven, Shr) {
 
 	    if (this.isHTML5) {
 	      html5.extend.call(this);
-	    } else if (this.isVimeo) {
-	      vimeo.setup.call(this);
 	    }
 	  }
 	};
@@ -12674,7 +11860,7 @@ typeof navigator === "object" && (function (Raven, Shr) {
 	      } // If HTML5 or embed but not fully supported, setupInterface and call ready now
 
 
-	      if (_this2.isHTML5 || _this2.isEmbed && !_this2.supported.ui) {
+	      if (_this2.isHTML5) {
 	        // Setup interface
 	        ui.build.call(_this2);
 	      } // Load HTML5 sources
@@ -12819,7 +12005,7 @@ typeof navigator === "object" && (function (Raven, Shr) {
 	    var clone = this.media.cloneNode(true);
 	    clone.autoplay = false;
 	    this.elements.original = clone; // Set media type based on tag or data attribute
-	    // Supported: video, audio, vimeo
+	    // Supported: video, audio
 
 	    var type = this.media.tagName.toLowerCase(); // Embed properties
 
@@ -12940,7 +12126,7 @@ typeof navigator === "object" && (function (Raven, Shr) {
 	    // If embed but not fully supported, build interface now to avoid flash of controls
 
 
-	    if (this.isHTML5 || this.isEmbed && !this.supported.ui) {
+	    if (this.isHTML5) {
 	      ui.build.call(this);
 	    } // Container listeners
 
@@ -13264,15 +12450,6 @@ typeof navigator === "object" && (function (Raven, Shr) {
 	        ui.toggleNativeControls.call(this, true); // Clean up
 
 	        done();
-	      } else if (this.isVimeo) {
-	        // Destroy Vimeo API
-	        // then clean up (wait, to prevent postmessage errors)
-	        if (this.embed !== null) {
-	          this.embed.unload().then(done);
-	        } // Vimeo does not always return
-
-
-	        setTimeout(done, 200);
 	      }
 	    }
 	    /**
@@ -13288,7 +12465,7 @@ typeof navigator === "object" && (function (Raven, Shr) {
 	    /**
 	     * Check for support
 	     * @param {String} type - Player type (audio/video)
-	     * @param {String} provider - Provider (html5/vimeo)
+	     * @param {String} provider - Provider (html5)
 	     * @param {Boolean} inline - Where player has `playsinline` sttribute
 	     */
 
@@ -13296,16 +12473,6 @@ typeof navigator === "object" && (function (Raven, Shr) {
 	    key: "isHTML5",
 	    get: function get() {
 	      return this.provider === providers.html5;
-	    }
-	  }, {
-	    key: "isEmbed",
-	    get: function get() {
-	      return this.isVimeo;
-	    }
-	  }, {
-	    key: "isVimeo",
-	    get: function get() {
-	      return this.provider === providers.vimeo;
 	    }
 	  }, {
 	    key: "isVideo",
@@ -13378,14 +12545,9 @@ typeof navigator === "object" && (function (Raven, Shr) {
 	  }, {
 	    key: "buffered",
 	    get: function get() {
-	      var buffered = this.media.buffered; // Vimeo return a float between 0-1
-
-	      if (is$1.number(buffered)) {
-	        return buffered;
-	      } // HTML5
+	      var buffered = this.media.buffered; // HTML5
 	      // TODO: Handle buffered chunks of the media
 	      // (i.e. seek to another section buffers only that section)
-
 
 	      if (buffered && buffered.length && this.duration > 0) {
 	        return buffered.end(0) / this.duration;
@@ -13555,36 +12717,6 @@ typeof navigator === "object" && (function (Raven, Shr) {
 	    ,
 	    get: function get() {
 	      return Number(this.media.playbackRate);
-	    }
-	    /**
-	     * Get the minimum allowed speed
-	     */
-
-	  }, {
-	    key: "minimumSpeed",
-	    get: function get() {
-	      if (this.isVimeo) {
-	        // https://github.com/vimeo/player.js/#setplaybackrateplaybackrate-number-promisenumber-rangeerrorerror
-	        return 0.5;
-	      } // https://stackoverflow.com/a/32320020/1191319
-
-
-	      return 0.0625;
-	    }
-	    /**
-	     * Get the maximum allowed speed
-	     */
-
-	  }, {
-	    key: "maximumSpeed",
-	    get: function get() {
-	      if (this.isVimeo) {
-	        // https://github.com/vimeo/player.js/#setplaybackrateplaybackrate-number-promisenumber-rangeerrorerror
-	        return 2;
-	      } // https://stackoverflow.com/a/32320020/1191319
-
-
-	      return 16;
 	    }
 	    /**
 	     * Set playback quality
@@ -13979,13 +13111,6 @@ typeof navigator === "object" && (function (Raven, Shr) {
 	    }, {
 	      src: 'https://cdn.plyr.io/static/demo/Kishi_Bashi_-_It_All_Began_With_a_Burst.ogg',
 	      type: 'audio/ogg'
-	    }]
-	  },
-	  vimeo: {
-	    type: 'video',
-	    sources: [{
-	      src: 'https://vimeo.com/76979871',
-	      provider: 'vimeo'
 	    }]
 	  }
 	};
