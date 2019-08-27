@@ -3792,8 +3792,7 @@ typeof navigator === "object" && (function (global, factory) {
     'ended', 'progress', 'stalled', 'playing', 'waiting', 'canplay', 'canplaythrough', 'loadstart', 'loadeddata', 'loadedmetadata', 'timeupdate', 'volumechange', 'play', 'pause', 'error', 'seeking', 'seeked', 'emptied', 'ratechange', 'cuechange', // Custom events
     'download', 'enterfullscreen', 'exitfullscreen', 'captionsenabled', 'captionsdisabled', 'languagechange', 'controlshidden', 'controlsshown', 'ready', // YouTube
     'statechange', // Quality
-    'qualitychange', // Ads
-    'adsloaded', 'adscontentpause', 'adscontentresume', 'adstarted', 'adsmidpoint', 'adscomplete', 'adsallcomplete', 'adsimpression', 'adsclick'],
+    'qualitychange'],
     // Selectors
     // Change these to match your template if using custom HTML
     selectors: {
@@ -3848,7 +3847,6 @@ typeof navigator === "object" && (function (global, factory) {
       embedContainer: 'plyr__video-embed__container',
       poster: 'plyr__poster',
       posterEnabled: 'plyr__poster-enabled',
-      ads: 'plyr__ads',
       control: 'plyr__control',
       controlPressed: 'plyr__control--pressed',
       playing: 'plyr--playing',
@@ -3906,13 +3904,6 @@ typeof navigator === "object" && (function (global, factory) {
         provider: 'data-plyr-provider',
         id: 'data-plyr-embed-id'
       }
-    },
-    // Advertisements plugin
-    // Register for an account here: http://vi.ai/publisher-video-monetization/?aid=plyrio
-    ads: {
-      enabled: false,
-      publisherId: '',
-      tagUrl: ''
     },
     // Preview Thumbnails plugin
     previewThumbnails: {
@@ -6379,647 +6370,6 @@ typeof navigator === "object" && (function (global, factory) {
     }
   };
 
-  var destroy = function destroy(instance) {
-    // Destroy our adsManager
-    if (instance.manager) {
-      instance.manager.destroy();
-    } // Destroy our adsManager
-
-
-    if (instance.elements.displayContainer) {
-      instance.elements.displayContainer.destroy();
-    }
-
-    instance.elements.container.remove();
-  };
-
-  var Ads =
-  /*#__PURE__*/
-  function () {
-    /**
-     * Ads constructor.
-     * @param {Object} player
-     * @return {Ads}
-     */
-    function Ads(player) {
-      var _this = this;
-
-      _classCallCheck(this, Ads);
-
-      this.player = player;
-      this.config = player.config.ads;
-      this.playing = false;
-      this.initialized = false;
-      this.elements = {
-        container: null,
-        displayContainer: null
-      };
-      this.manager = null;
-      this.loader = null;
-      this.cuePoints = null;
-      this.events = {};
-      this.safetyTimer = null;
-      this.countdownTimer = null; // Setup a promise to resolve when the IMA manager is ready
-
-      this.managerPromise = new Promise(function (resolve, reject) {
-        // The ad is loaded and ready
-        _this.on('loaded', resolve); // Ads failed
-
-
-        _this.on('error', reject);
-      });
-      this.load();
-    }
-
-    _createClass(Ads, [{
-      key: "load",
-
-      /**
-       * Load the IMA SDK
-       */
-      value: function load() {
-        var _this2 = this;
-
-        if (!this.enabled) {
-          return;
-        } // Check if the Google IMA3 SDK is loaded or load it ourselves
-
-
-        if (!is$1.object(window.google) || !is$1.object(window.google.ima)) {
-          loadScript(this.player.config.urls.googleIMA.sdk).then(function () {
-            _this2.ready();
-          }).catch(function () {
-            // Script failed to load or is blocked
-            _this2.trigger('error', new Error('Google IMA SDK failed to load'));
-          });
-        } else {
-          this.ready();
-        }
-      }
-      /**
-       * Get the ads instance ready
-       */
-
-    }, {
-      key: "ready",
-      value: function ready() {
-        var _this3 = this;
-
-        // Double check we're enabled
-        if (!this.enabled) {
-          destroy(this);
-        } // Start ticking our safety timer. If the whole advertisement
-        // thing doesn't resolve within our set time; we bail
-
-
-        this.startSafetyTimer(12000, 'ready()'); // Clear the safety timer
-
-        this.managerPromise.then(function () {
-          _this3.clearSafetyTimer('onAdsManagerLoaded()');
-        }); // Set listeners on the Plyr instance
-
-        this.listeners(); // Setup the IMA SDK
-
-        this.setupIMA();
-      } // Build the tag URL
-
-    }, {
-      key: "setupIMA",
-
-      /**
-       * In order for the SDK to display ads for our video, we need to tell it where to put them,
-       * so here we define our ad container. This div is set up to render on top of the video player.
-       * Using the code below, we tell the SDK to render ads within that div. We also provide a
-       * handle to the content video player - the SDK will poll the current time of our player to
-       * properly place mid-rolls. After we create the ad display container, we initialize it. On
-       * mobile devices, this initialization is done as the result of a user action.
-       */
-      value: function setupIMA() {
-        // Create the container for our advertisements
-        this.elements.container = createElement('div', {
-          class: this.player.config.classNames.ads
-        });
-        this.player.elements.container.appendChild(this.elements.container); // So we can run VPAID2
-
-        google.ima.settings.setVpaidMode(google.ima.ImaSdkSettings.VpaidMode.ENABLED); // Set language
-
-        google.ima.settings.setLocale(this.player.config.ads.language); // Set playback for iOS10+
-
-        google.ima.settings.setDisableCustomPlaybackForIOS10Plus(this.player.config.playsinline); // We assume the adContainer is the video container of the plyr element that will house the ads
-
-        this.elements.displayContainer = new google.ima.AdDisplayContainer(this.elements.container, this.player.media); // Request video ads to be pre-loaded
-
-        this.requestAds();
-      }
-      /**
-       * Request advertisements
-       */
-
-    }, {
-      key: "requestAds",
-      value: function requestAds() {
-        var _this4 = this;
-
-        var container = this.player.elements.container;
-
-        try {
-          // Create ads loader
-          this.loader = new google.ima.AdsLoader(this.elements.displayContainer); // Listen and respond to ads loaded and error events
-
-          this.loader.addEventListener(google.ima.AdsManagerLoadedEvent.Type.ADS_MANAGER_LOADED, function (event) {
-            return _this4.onAdsManagerLoaded(event);
-          }, false);
-          this.loader.addEventListener(google.ima.AdErrorEvent.Type.AD_ERROR, function (error) {
-            return _this4.onAdError(error);
-          }, false); // Request video ads
-
-          var request = new google.ima.AdsRequest();
-          request.adTagUrl = this.tagUrl; // Specify the linear and nonlinear slot sizes. This helps the SDK
-          // to select the correct creative if multiple are returned
-
-          request.linearAdSlotWidth = container.offsetWidth;
-          request.linearAdSlotHeight = container.offsetHeight;
-          request.nonLinearAdSlotWidth = container.offsetWidth;
-          request.nonLinearAdSlotHeight = container.offsetHeight; // We only overlay ads as we only support video.
-
-          request.forceNonLinearFullSlot = false; // Mute based on current state
-
-          request.setAdWillPlayMuted(!this.player.muted);
-          this.loader.requestAds(request);
-        } catch (e) {
-          this.onAdError(e);
-        }
-      }
-      /**
-       * Update the ad countdown
-       * @param {Boolean} start
-       */
-
-    }, {
-      key: "pollCountdown",
-      value: function pollCountdown() {
-        var _this5 = this;
-
-        var start = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
-
-        if (!start) {
-          clearInterval(this.countdownTimer);
-          this.elements.container.removeAttribute('data-badge-text');
-          return;
-        }
-
-        var update = function update() {
-          var time = formatTime(Math.max(_this5.manager.getRemainingTime(), 0));
-          var label = "".concat(i18n.get('advertisement', _this5.player.config), " - ").concat(time);
-
-          _this5.elements.container.setAttribute('data-badge-text', label);
-        };
-
-        this.countdownTimer = setInterval(update, 100);
-      }
-      /**
-       * This method is called whenever the ads are ready inside the AdDisplayContainer
-       * @param {Event} adsManagerLoadedEvent
-       */
-
-    }, {
-      key: "onAdsManagerLoaded",
-      value: function onAdsManagerLoaded(event) {
-        var _this6 = this;
-
-        // Load could occur after a source change (race condition)
-        if (!this.enabled) {
-          return;
-        } // Get the ads manager
-
-
-        var settings = new google.ima.AdsRenderingSettings(); // Tell the SDK to save and restore content video state on our behalf
-
-        settings.restoreCustomPlaybackStateOnAdBreakComplete = true;
-        settings.enablePreloading = true; // The SDK is polling currentTime on the contentPlayback. And needs a duration
-        // so it can determine when to start the mid- and post-roll
-
-        this.manager = event.getAdsManager(this.player, settings); // Get the cue points for any mid-rolls by filtering out the pre- and post-roll
-
-        this.cuePoints = this.manager.getCuePoints(); // Add listeners to the required events
-        // Advertisement error events
-
-        this.manager.addEventListener(google.ima.AdErrorEvent.Type.AD_ERROR, function (error) {
-          return _this6.onAdError(error);
-        }); // Advertisement regular events
-
-        Object.keys(google.ima.AdEvent.Type).forEach(function (type) {
-          _this6.manager.addEventListener(google.ima.AdEvent.Type[type], function (e) {
-            return _this6.onAdEvent(e);
-          });
-        }); // Resolve our adsManager
-
-        this.trigger('loaded');
-      }
-    }, {
-      key: "addCuePoints",
-      value: function addCuePoints() {
-        var _this7 = this;
-
-        // Add advertisement cue's within the time line if available
-        if (!is$1.empty(this.cuePoints)) {
-          this.cuePoints.forEach(function (cuePoint) {
-            if (cuePoint !== 0 && cuePoint !== -1 && cuePoint < _this7.player.duration) {
-              var seekElement = _this7.player.elements.progress;
-
-              if (is$1.element(seekElement)) {
-                var cuePercentage = 100 / _this7.player.duration * cuePoint;
-                var cue = createElement('span', {
-                  class: _this7.player.config.classNames.cues
-                });
-                cue.style.left = "".concat(cuePercentage.toString(), "%");
-                seekElement.appendChild(cue);
-              }
-            }
-          });
-        }
-      }
-      /**
-       * This is where all the event handling takes place. Retrieve the ad from the event. Some
-       * events (e.g. ALL_ADS_COMPLETED) don't have the ad object associated
-       * https://developers.google.com/interactive-media-ads/docs/sdks/html5/v3/apis#ima.AdEvent.Type
-       * @param {Event} event
-       */
-
-    }, {
-      key: "onAdEvent",
-      value: function onAdEvent(event) {
-        var _this8 = this;
-
-        var container = this.player.elements.container; // Retrieve the ad from the event. Some events (e.g. ALL_ADS_COMPLETED)
-        // don't have ad object associated
-
-        var ad = event.getAd();
-        var adData = event.getAdData(); // Proxy event
-
-        var dispatchEvent = function dispatchEvent(type) {
-          triggerEvent.call(_this8.player, _this8.player.media, "ads".concat(type.replace(/_/g, '').toLowerCase()));
-        }; // Bubble the event
-
-
-        dispatchEvent(event.type);
-
-        switch (event.type) {
-          case google.ima.AdEvent.Type.LOADED:
-            // This is the first event sent for an ad - it is possible to determine whether the
-            // ad is a video ad or an overlay
-            this.trigger('loaded'); // Start countdown
-
-            this.pollCountdown(true);
-
-            if (!ad.isLinear()) {
-              // Position AdDisplayContainer correctly for overlay
-              ad.width = container.offsetWidth;
-              ad.height = container.offsetHeight;
-            } // console.info('Ad type: ' + event.getAd().getAdPodInfo().getPodIndex());
-            // console.info('Ad time: ' + event.getAd().getAdPodInfo().getTimeOffset());
-
-
-            break;
-
-          case google.ima.AdEvent.Type.STARTED:
-            // Set volume to match player
-            this.manager.setVolume(this.player.volume);
-            break;
-
-          case google.ima.AdEvent.Type.ALL_ADS_COMPLETED:
-            // All ads for the current videos are done. We can now request new advertisements
-            // in case the video is re-played
-            // TODO: Example for what happens when a next video in a playlist would be loaded.
-            // So here we load a new video when all ads are done.
-            // Then we load new ads within a new adsManager. When the video
-            // Is started - after - the ads are loaded, then we get ads.
-            // You can also easily test cancelling and reloading by running
-            // player.ads.cancel() and player.ads.play from the console I guess.
-            // this.player.source = {
-            //     type: 'video',
-            //     title: 'View From A Blue Moon',
-            //     sources: [{
-            //         src:
-            // 'https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.mp4', type:
-            // 'video/mp4', }], poster:
-            // 'https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.jpg', tracks:
-            // [ { kind: 'captions', label: 'English', srclang: 'en', src:
-            // 'https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.en.vtt',
-            // default: true, }, { kind: 'captions', label: 'French', srclang: 'fr', src:
-            // 'https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.fr.vtt', }, ],
-            // };
-            // TODO: So there is still this thing where a video should only be allowed to start
-            // playing when the IMA SDK is ready or has failed
-            this.loadAds();
-            break;
-
-          case google.ima.AdEvent.Type.CONTENT_PAUSE_REQUESTED:
-            // This event indicates the ad has started - the video player can adjust the UI,
-            // for example display a pause button and remaining time. Fired when content should
-            // be paused. This usually happens right before an ad is about to cover the content
-            this.pauseContent();
-            break;
-
-          case google.ima.AdEvent.Type.CONTENT_RESUME_REQUESTED:
-            // This event indicates the ad has finished - the video player can perform
-            // appropriate UI actions, such as removing the timer for remaining time detection.
-            // Fired when content should be resumed. This usually happens when an ad finishes
-            // or collapses
-            this.pollCountdown();
-            this.resumeContent();
-            break;
-
-          case google.ima.AdEvent.Type.LOG:
-            if (adData.adError) {
-              this.player.debug.warn("Non-fatal ad error: ".concat(adData.adError.getMessage()));
-            }
-
-            break;
-
-          default:
-            break;
-        }
-      }
-      /**
-       * Any ad error handling comes through here
-       * @param {Event} event
-       */
-
-    }, {
-      key: "onAdError",
-      value: function onAdError(event) {
-        this.cancel();
-        this.player.debug.warn('Ads error', event);
-      }
-      /**
-       * Setup hooks for Plyr and window events. This ensures
-       * the mid- and post-roll launch at the correct time. And
-       * resize the advertisement when the player resizes
-       */
-
-    }, {
-      key: "listeners",
-      value: function listeners() {
-        var _this9 = this;
-
-        var container = this.player.elements.container;
-        var time;
-        this.player.on('canplay', function () {
-          _this9.addCuePoints();
-        });
-        this.player.on('ended', function () {
-          _this9.loader.contentComplete();
-        });
-        this.player.on('timeupdate', function () {
-          time = _this9.player.currentTime;
-        });
-        this.player.on('seeked', function () {
-          var seekedTime = _this9.player.currentTime;
-
-          if (is$1.empty(_this9.cuePoints)) {
-            return;
-          }
-
-          _this9.cuePoints.forEach(function (cuePoint, index) {
-            if (time < cuePoint && cuePoint < seekedTime) {
-              _this9.manager.discardAdBreak();
-
-              _this9.cuePoints.splice(index, 1);
-            }
-          });
-        }); // Listen to the resizing of the window. And resize ad accordingly
-        // TODO: eventually implement ResizeObserver
-
-        window.addEventListener('resize', function () {
-          if (_this9.manager) {
-            _this9.manager.resize(container.offsetWidth, container.offsetHeight, google.ima.ViewMode.NORMAL);
-          }
-        });
-      }
-      /**
-       * Initialize the adsManager and start playing advertisements
-       */
-
-    }, {
-      key: "play",
-      value: function play() {
-        var _this10 = this;
-
-        var container = this.player.elements.container;
-
-        if (!this.managerPromise) {
-          this.resumeContent();
-        } // Play the requested advertisement whenever the adsManager is ready
-
-
-        this.managerPromise.then(function () {
-          // Set volume to match player
-          _this10.manager.setVolume(_this10.player.volume); // Initialize the container. Must be done via a user action on mobile devices
-
-
-          _this10.elements.displayContainer.initialize();
-
-          try {
-            if (!_this10.initialized) {
-              // Initialize the ads manager. Ad rules playlist will start at this time
-              _this10.manager.init(container.offsetWidth, container.offsetHeight, google.ima.ViewMode.NORMAL); // Call play to start showing the ad. Single video and overlay ads will
-              // start at this time; the call will be ignored for ad rules
-
-
-              _this10.manager.start();
-            }
-
-            _this10.initialized = true;
-          } catch (adError) {
-            // An error may be thrown if there was a problem with the
-            // VAST response
-            _this10.onAdError(adError);
-          }
-        }).catch(function () {});
-      }
-      /**
-       * Resume our video
-       */
-
-    }, {
-      key: "resumeContent",
-      value: function resumeContent() {
-        // Hide the advertisement container
-        this.elements.container.style.zIndex = ''; // Ad is stopped
-
-        this.playing = false; // Play video
-
-        this.player.media.play();
-      }
-      /**
-       * Pause our video
-       */
-
-    }, {
-      key: "pauseContent",
-      value: function pauseContent() {
-        // Show the advertisement container
-        this.elements.container.style.zIndex = 3; // Ad is playing
-
-        this.playing = true; // Pause our video.
-
-        this.player.media.pause();
-      }
-      /**
-       * Destroy the adsManager so we can grab new ads after this. If we don't then we're not
-       * allowed to call new ads based on google policies, as they interpret this as an accidental
-       * video requests. https://developers.google.com/interactive-
-       * media-ads/docs/sdks/android/faq#8
-       */
-
-    }, {
-      key: "cancel",
-      value: function cancel() {
-        // Pause our video
-        if (this.initialized) {
-          this.resumeContent();
-        } // Tell our instance that we're done for now
-
-
-        this.trigger('error'); // Re-create our adsManager
-
-        this.loadAds();
-      }
-      /**
-       * Re-create our adsManager
-       */
-
-    }, {
-      key: "loadAds",
-      value: function loadAds() {
-        var _this11 = this;
-
-        // Tell our adsManager to go bye bye
-        this.managerPromise.then(function () {
-          // Destroy our adsManager
-          if (_this11.manager) {
-            _this11.manager.destroy();
-          } // Re-set our adsManager promises
-
-
-          _this11.managerPromise = new Promise(function (resolve) {
-            _this11.on('loaded', resolve);
-
-            _this11.player.debug.log(_this11.manager);
-          }); // Now request some new advertisements
-
-          _this11.requestAds();
-        }).catch(function () {});
-      }
-      /**
-       * Handles callbacks after an ad event was invoked
-       * @param {String} event - Event type
-       */
-
-    }, {
-      key: "trigger",
-      value: function trigger(event) {
-        var _this12 = this;
-
-        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-          args[_key - 1] = arguments[_key];
-        }
-
-        var handlers = this.events[event];
-
-        if (is$1.array(handlers)) {
-          handlers.forEach(function (handler) {
-            if (is$1.function(handler)) {
-              handler.apply(_this12, args);
-            }
-          });
-        }
-      }
-      /**
-       * Add event listeners
-       * @param {String} event - Event type
-       * @param {Function} callback - Callback for when event occurs
-       * @return {Ads}
-       */
-
-    }, {
-      key: "on",
-      value: function on(event, callback) {
-        if (!is$1.array(this.events[event])) {
-          this.events[event] = [];
-        }
-
-        this.events[event].push(callback);
-        return this;
-      }
-      /**
-       * Setup a safety timer for when the ad network doesn't respond for whatever reason.
-       * The advertisement has 12 seconds to get its things together. We stop this timer when the
-       * advertisement is playing, or when a user action is required to start, then we clear the
-       * timer on ad ready
-       * @param {Number} time
-       * @param {String} from
-       */
-
-    }, {
-      key: "startSafetyTimer",
-      value: function startSafetyTimer(time, from) {
-        var _this13 = this;
-
-        this.player.debug.log("Safety timer invoked from: ".concat(from));
-        this.safetyTimer = setTimeout(function () {
-          _this13.cancel();
-
-          _this13.clearSafetyTimer('startSafetyTimer()');
-        }, time);
-      }
-      /**
-       * Clear our safety timer(s)
-       * @param {String} from
-       */
-
-    }, {
-      key: "clearSafetyTimer",
-      value: function clearSafetyTimer(from) {
-        if (!is$1.nullOrUndefined(this.safetyTimer)) {
-          this.player.debug.log("Safety timer cleared from: ".concat(from));
-          clearTimeout(this.safetyTimer);
-          this.safetyTimer = null;
-        }
-      }
-    }, {
-      key: "enabled",
-      get: function get() {
-        var config = this.config;
-        return this.player.isHTML5 && this.player.isVideo && config.enabled && (!is$1.empty(config.publisherId) || is$1.url(config.tagUrl));
-      }
-    }, {
-      key: "tagUrl",
-      get: function get() {
-        var config = this.config;
-
-        if (is$1.url(config.tagUrl)) {
-          return config.tagUrl;
-        }
-
-        var params = {
-          AV_PUBLISHERID: '58c25bb0073ef448b1087ad6',
-          AV_CHANNELID: '5a0458dc28a06145e4519d21',
-          AV_URL: window.location.hostname,
-          cb: Date.now(),
-          AV_WIDTH: 640,
-          AV_HEIGHT: 480,
-          AV_CDIM2: this.publisherId
-        };
-        var base = 'https://go.aniview.com/api/adserver6/vast/';
-        return "".concat(base, "?").concat(buildUrlParams(params));
-      }
-    }]);
-
-    return Ads;
-  }();
-
   var parseVtt = function parseVtt(vttDataString) {
     var processedList = [];
     var frames = vttDataString.split(/\r\n\r\n|\n\n|\r\r/);
@@ -8098,12 +7448,7 @@ typeof navigator === "object" && (function (global, factory) {
 
       this.listeners.global(); // Setup fullscreen
 
-      this.fullscreen = new Fullscreen(this); // Setup ads if provided
-
-      if (this.config.ads.enabled) {
-        this.ads = new Ads(this);
-      } // Autoplay if required
-
+      this.fullscreen = new Fullscreen(this); // Autoplay if required
 
       if (this.isHTML5 && this.config.autoplay) {
         setTimeout(function () {
@@ -8133,19 +7478,8 @@ typeof navigator === "object" && (function (global, factory) {
        * Play the media, or play the advertisement (if they are not blocked)
        */
       value: function play() {
-        var _this2 = this;
-
         if (!is$1.function(this.media.play)) {
           return null;
-        } // Intecept play with ads
-
-
-        if (this.ads && this.ads.enabled) {
-          this.ads.managerPromise.then(function () {
-            return _this2.ads.play();
-          }).catch(function () {
-            return _this2.media.play();
-          });
         } // Return the promise (for HTML5)
 
 
@@ -8363,7 +7697,7 @@ typeof navigator === "object" && (function (global, factory) {
     }, {
       key: "destroy",
       value: function destroy(callback) {
-        var _this3 = this;
+        var _this2 = this;
 
         var soft = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
 
@@ -8375,20 +7709,20 @@ typeof navigator === "object" && (function (global, factory) {
           // Reset overflow (incase destroyed while in fullscreen)
           document.body.style.overflow = ''; // GC for embed
 
-          _this3.embed = null; // If it's a soft destroy, make minimal changes
+          _this2.embed = null; // If it's a soft destroy, make minimal changes
 
           if (soft) {
-            if (Object.keys(_this3.elements).length) {
+            if (Object.keys(_this2.elements).length) {
               // Remove elements
-              removeElement(_this3.elements.buttons.play);
-              removeElement(_this3.elements.captions);
-              removeElement(_this3.elements.controls);
-              removeElement(_this3.elements.wrapper); // Clear for GC
+              removeElement(_this2.elements.buttons.play);
+              removeElement(_this2.elements.captions);
+              removeElement(_this2.elements.controls);
+              removeElement(_this2.elements.wrapper); // Clear for GC
 
-              _this3.elements.buttons.play = null;
-              _this3.elements.captions = null;
-              _this3.elements.controls = null;
-              _this3.elements.wrapper = null;
+              _this2.elements.buttons.play = null;
+              _this2.elements.captions = null;
+              _this2.elements.controls = null;
+              _this2.elements.wrapper = null;
             } // Callback
 
 
@@ -8397,22 +7731,22 @@ typeof navigator === "object" && (function (global, factory) {
             }
           } else {
             // Unbind listeners
-            unbindListeners.call(_this3); // Replace the container with the original element provided
+            unbindListeners.call(_this2); // Replace the container with the original element provided
 
-            replaceElement(_this3.elements.original, _this3.elements.container); // Event
+            replaceElement(_this2.elements.original, _this2.elements.container); // Event
 
-            triggerEvent.call(_this3, _this3.elements.original, 'destroyed', true); // Callback
+            triggerEvent.call(_this2, _this2.elements.original, 'destroyed', true); // Callback
 
             if (is$1.function(callback)) {
-              callback.call(_this3.elements.original);
+              callback.call(_this2.elements.original);
             } // Reset state
 
 
-            _this3.ready = false; // Clear for garbage collection
+            _this2.ready = false; // Clear for garbage collection
 
             setTimeout(function () {
-              _this3.elements = null;
-              _this3.media = null;
+              _this2.elements = null;
+              _this2.media = null;
             }, 200);
           }
         }; // Stop playback
@@ -8703,7 +8037,7 @@ typeof navigator === "object" && (function (global, factory) {
     }, {
       key: "speed",
       set: function set(input) {
-        var _this4 = this;
+        var _this3 = this;
 
         var speed = null;
 
@@ -8727,7 +8061,7 @@ typeof navigator === "object" && (function (global, factory) {
         this.config.speed.selected = speed; // Set media speed
 
         setTimeout(function () {
-          _this4.media.playbackRate = speed;
+          _this3.media.playbackRate = speed;
         }, 0);
       }
       /**
