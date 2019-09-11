@@ -52,6 +52,9 @@ const defaults = {
     // Auto hide the controls
     hideControls: true,
 
+    // hide controls when video is paused
+    hideControlsOnPause: false,
+
     // Reset to start when playback ended
     resetOnEnd: false,
 

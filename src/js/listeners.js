@@ -276,6 +276,9 @@ class Listeners {
             'mousemove mouseleave touchstart touchmove enterfullscreen exitfullscreen',
             event => {
                 const { controls: controlsElement } = elements;
+                if(player.paused && player.config.hideControlsOnPause){
+                    return;
+                }
 
                 // Remove button states for fullscreen
                 if (controlsElement && event.type === 'enterfullscreen') {
