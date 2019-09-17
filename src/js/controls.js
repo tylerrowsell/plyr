@@ -1356,6 +1356,11 @@ const controls = {
                 container.appendChild(createTime.call(this, 'duration', defaultAttributes));
             }
 
+            // Toggle mute button
+            if (control === 'mute') {
+                container.appendChild(createButton.call(this, 'mute'));
+            }
+
             // Volume controls
             if (control === 'mute' || control === 'volume') {
                 let { volume } = this.elements;
@@ -1374,10 +1379,7 @@ const controls = {
                     container.appendChild(volume);
                 }
 
-                // Toggle mute button
-                if (control === 'mute') {
-                    volume.appendChild(createButton.call(this, 'mute'));
-                }
+                
 
                 // Volume range control
                 if (control === 'volume') {
