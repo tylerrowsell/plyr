@@ -383,6 +383,15 @@ const defaults = {
             scrubbingContainer: 'plyr__preview-scrubbing',
             scrubbingContainerShown: 'plyr__preview-scrubbing--is-shown',
         },
+        keyboardFlash: {
+            container: 'plyr__flash--keyboard-container',
+            play: 'plyr__flash--keyboard-play',
+            pause: 'plyr__flash--keyboard-pause',
+            mute: 'plyr__flash--keyboard-mute',
+            unmute: 'plyr__flash--keyboard-unmute',
+            forward: 'plyr__flash--keyboard-forward',
+            rewind: 'plyr__flash--keyboard-rewind'
+        }
     },
 
     // Embed attributes

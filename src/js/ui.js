@@ -266,6 +266,11 @@ const ui = {
             );
         }
     },
+
+    // flash keyboard events
+    flashKeyboardEvent(event) {
+        this.flashKeyboardEvent(event);
+    },
 };
 
 export default ui;

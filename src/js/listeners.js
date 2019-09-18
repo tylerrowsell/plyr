@@ -101,6 +101,7 @@ class Listeners {
                     if (!repeat) {
                         player.togglePlay();
                     }
+                    ui.flashKeyboardEvent.call(player, player.paused ? 'pause' : 'play');
                     break;
 
                 case 38:
@@ -118,16 +119,19 @@ class Listeners {
                     if (!repeat) {
                         player.muted = !player.muted;
                     }
+                    ui.flashKeyboardEvent.call(player, player.muted ? 'mute' : 'unmute');
                     break;
 
                 case 39:
                     // Arrow forward
                     player.forward();
+                    ui.flashKeyboardEvent.call(player, 'forward');
                     break;
 
                 case 37:
                     // Arrow back
                     player.rewind();
+                    ui.flashKeyboardEvent.call(player, 'rewind');
                     break;
 
                 case 70:
@@ -408,6 +412,7 @@ class Listeners {
 
         // Loading state
         on.call(player, player.media, 'waiting canplay seeked playing', event => ui.checkLoading.call(player, event));
+
 
         // Click video
         if (player.supported.ui && player.config.clickToPlay && !player.isAudio) {
