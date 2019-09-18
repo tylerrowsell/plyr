@@ -103,6 +103,51 @@ a.plyr__control {
     visibility: hidden;
 }
 
-.plyr--full-ui.plyr--video .plyr__control--overlaid {
+.plyr--full-ui.plyr--video:not(.plyr__flash--keyboard-play):not(.plyr__flash--keyboard-pause) .plyr__control--overlaid{
+    display: block;
+}
+.plyr--full-ui.plyr--video .plyr__flash--keyboard-container{
+    background-color: rgba($plyr-video-controls-bg, 0.8);
+    border-radius: 5px;
+    color: $plyr-video-control-color;
+    display: block;
+    height: 50px;
+    left: 50%;
+    opacity: 0;
+    padding: ceil($plyr-control-spacing * 1.5);
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 50px;
+    z-index: 2;
+}
+.plyr--full-ui.plyr--video .plyr__flash--keyboard-container svg{
+    display: none;
+    fill: $plyr-video-control-color;
+    height: 20px;
+    left: 50%;
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+}
+
+
+.plyr--full-ui.plyr--video.plyr__flash--keyboard-play .plyr__flash--keyboard-container,
+.plyr--full-ui.plyr--video.plyr__flash--keyboard-pause .plyr__flash--keyboard-container,
+.plyr--full-ui.plyr--video.plyr__flash--keyboard-mute .plyr__flash--keyboard-container,
+.plyr--full-ui.plyr--video.plyr__flash--keyboard-unmute .plyr__flash--keyboard-container,
+.plyr--full-ui.plyr--video.plyr__flash--keyboard-forward .plyr__flash--keyboard-container,
+.plyr--full-ui.plyr--video.plyr__flash--keyboard-rewind .plyr__flash--keyboard-container{
+    opacity: 1;
+    transition: opacity 0.65s ease-in-out;
+}
+
+.plyr--full-ui.plyr--video.plyr__flash--keyboard-play .icon--play,
+.plyr--full-ui.plyr--video.plyr__flash--keyboard-pause .icon--pause,
+.plyr--full-ui.plyr--video.plyr__flash--keyboard-mute .icon--mute,
+.plyr--full-ui.plyr--video.plyr__flash--keyboard-unmute .icon--unmute,
+.plyr--full-ui.plyr--video.plyr__flash--keyboard-forward .icon--forward,
+.plyr--full-ui.plyr--video.plyr__flash--keyboard-rewind .icon--rewind{
     display: block;
 }

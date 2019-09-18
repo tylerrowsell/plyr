@@ -20,6 +20,7 @@ import source from './source';
 import Storage from './storage';
 import support from './support';
 import ui from './ui';
+import { transitionEndEvent } from './utils/animation';
 import { closest } from './utils/arrays';
 import { createElement, hasClass, removeElement, replaceElement, toggleClass, wrap } from './utils/elements';
 import { off, on, once, triggerEvent, unbindListeners } from './utils/events';
@@ -1063,6 +1064,24 @@ class Plyr {
         }
 
         return false;
+    }
+
+    /**
+     * Flashes the triggered keyboard event
+     * @param {String} event - Event type
+     */
+    flashKeyboardEvent(event) {
+        // Show keyboard flash
+        toggleClass(this.elements.container, this.config.classNames.keyboardFlash[event], true);
+        
+        const restore = () => {
+            // Hide keyboard flash
+            toggleClass(this.elements.container, this.config.classNames.keyboardFlash[event], false);
+            // Only listen once
+            off.call(this, this.elements.keyboardFlash, transitionEndEvent, restore);
+        };
+        // Listen for the transition finishing and hide the keyboard flash
+        on.call(this, this.elements.keyboardFlash, transitionEndEvent, restore);
     }
 
     /**

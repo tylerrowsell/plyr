@@ -1278,6 +1278,46 @@ const controls = {
             this.elements.container.appendChild(createButton.call(this, 'play-large'));
         }
 
+        // Keyboard Flash Container
+        if (this.config.controls.includes('keyboard-flash')) {
+            const flashContainer = createElement('div', {
+                class: this.config.classNames.keyboardFlash.container,
+            });
+
+            const iconPlay = controls.createIcon.call(this, 'play', {
+                class: 'icon--play',
+            });
+            flashContainer.appendChild(iconPlay);
+
+            const iconPause = controls.createIcon.call(this, 'pause', {
+                class: 'icon--pause',
+            });
+            flashContainer.appendChild(iconPause);
+            
+            const iconMute = controls.createIcon.call(this, 'muted', {
+                class: 'icon--mute',
+            });
+            flashContainer.appendChild(iconMute);
+            
+            const iconUnmute = controls.createIcon.call(this, 'volume', {
+                class: 'icon--unmute',
+            });
+            flashContainer.appendChild(iconUnmute);
+
+            const iconRewind = controls.createIcon.call(this, 'rewind', {
+                class: 'icon--rewind',
+            });
+            flashContainer.appendChild(iconRewind);
+
+            const iconForward = controls.createIcon.call(this, 'fast-forward', {
+                class: 'icon--forward',
+            });
+            flashContainer.appendChild(iconForward);
+            
+            this.elements.keyboardFlash = flashContainer;
+            this.elements.container.appendChild(flashContainer);
+        }
+
         // Create the container
         const container = createElement('div', getAttributesFromSelector(this.config.selectors.controls.wrapper));
         this.elements.controls = container;
