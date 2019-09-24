@@ -118,6 +118,7 @@ a.plyr__control {
     position: absolute;
     top: 50%;
     transform: translate(-50%, -50%);
+    visibility: hidden;
     width: 50px;
     z-index: 2;
 }
@@ -140,7 +141,8 @@ a.plyr__control {
 .plyr--full-ui.plyr--video.plyr__flash--keyboard-forward .plyr__flash--keyboard-container,
 .plyr--full-ui.plyr--video.plyr__flash--keyboard-rewind .plyr__flash--keyboard-container{
     opacity: 1;
-    transition: opacity 0.65s ease-in-out;
+    transition: visibility, opacity 0.65s ease-in-out;
+    visibility: visible;
 }
 
 .plyr--full-ui.plyr--video.plyr__flash--keyboard-play .icon--play,
